@@ -12,7 +12,7 @@
 
 package de.linzn.weather.engine;
 
-import de.stem.stemSystem.STEMSystemApp;
+import de.linzn.stem.STEMApp;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,7 +43,7 @@ public class WeatherEngine {
             String jsonText = readAll(rd);
             return new JSONObject(jsonText);
         } catch (Exception exception) {
-            STEMSystemApp.LOGGER.ERROR(exception);
+            STEMApp.LOGGER.ERROR(exception);
         }
         return null;
     }

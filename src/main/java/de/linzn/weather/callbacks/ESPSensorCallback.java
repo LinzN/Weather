@@ -12,11 +12,11 @@
 
 package de.linzn.weather.callbacks;
 
+import de.linzn.stem.STEMApp;
+import de.linzn.stem.taskManagment.AbstractCallback;
+import de.linzn.stem.taskManagment.CallbackTime;
+import de.linzn.stem.taskManagment.operations.OperationOutput;
 import de.linzn.weather.dataObjects.SensorData;
-import de.stem.stemSystem.STEMSystemApp;
-import de.stem.stemSystem.taskManagment.AbstractCallback;
-import de.stem.stemSystem.taskManagment.CallbackTime;
-import de.stem.stemSystem.taskManagment.operations.OperationOutput;
 import org.json.JSONObject;
 
 import java.util.concurrent.TimeUnit;
@@ -28,18 +28,18 @@ public class ESPSensorCallback extends AbstractCallback {
     public void operation() {
         ESPSensorRequestOperation espSensorRequestOperation = new ESPSensorRequestOperation();
         addOperationData(espSensorRequestOperation);
-        STEMSystemApp.LOGGER.DEBUG("Send ESP sensor request");
+        STEMApp.LOGGER.DEBUG("Send ESP sensor request");
     }
 
     @Override
     public void callback(OperationOutput operationOutput) {
         JSONObject jsonObject = (JSONObject) operationOutput.getData();
         if (operationOutput.getExit() == 0) {
-            STEMSystemApp.LOGGER.DEBUG("Get ESP sensor GET-data: " + jsonObject + " exit " + operationOutput.getExit());
+            STEMApp.LOGGER.DEBUG("Get ESP sensor GET-data: " + jsonObject + " exit " + operationOutput.getExit());
             SensorData sensorData = new SensorData(jsonObject);
             SensorData.setLastSensorData(sensorData);
         } else {
-            STEMSystemApp.LOGGER.ERROR("ESP sensor GET-data error! Request end with exit " + operationOutput.getExit());
+            STEMApp.LOGGER.ERROR("ESP sensor GET-data error! Request end with exit " + operationOutput.getExit());
         }
     }
 

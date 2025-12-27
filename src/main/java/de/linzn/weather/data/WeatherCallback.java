@@ -13,13 +13,13 @@
 package de.linzn.weather.data;
 
 
+import de.linzn.stem.STEMApp;
+import de.linzn.stem.taskManagment.AbstractCallback;
+import de.linzn.stem.taskManagment.CallbackTime;
+import de.linzn.stem.taskManagment.operations.OperationOutput;
 import de.linzn.weather.WeatherPlugin;
 import de.linzn.weather.engine.WeatherContainer;
 import de.linzn.weather.engine.WeatherEngine;
-import de.stem.stemSystem.STEMSystemApp;
-import de.stem.stemSystem.taskManagment.AbstractCallback;
-import de.stem.stemSystem.taskManagment.CallbackTime;
-import de.stem.stemSystem.taskManagment.operations.OperationOutput;
 import org.json.JSONObject;
 
 import java.util.concurrent.TimeUnit;
@@ -44,7 +44,7 @@ public class WeatherCallback extends AbstractCallback {
         JSONObject weatherForecast = weatherObject.getJSONObject("forecast");
         weatherContainer = WeatherEngine.getWeatherByJSON(weatherCurrent);
         weatherContainer.setForecast(weatherForecast);
-        STEMSystemApp.LOGGER.DEBUG("Weather pull complete");
+        STEMApp.LOGGER.DEBUG("Weather pull complete");
     }
 
     @Override

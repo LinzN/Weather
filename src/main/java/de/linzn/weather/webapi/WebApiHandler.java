@@ -12,9 +12,9 @@
 
 package de.linzn.weather.webapi;
 
+import de.linzn.stem.modules.pluginModule.STEMPlugin;
 import de.linzn.webapi.WebApiPlugin;
 import de.linzn.webapi.modules.WebModule;
-import de.stem.stemSystem.modules.pluginModule.STEMPlugin;
 
 public class WebApiHandler {
 

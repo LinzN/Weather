@@ -27,7 +27,7 @@ public class ForecastContainer {
         return jsonObject.getInt("cnt");
     }
 
-    public String getLocation(){
+    public String getLocation() {
         return jsonObject.getJSONObject("city").getString("name");
     }
 

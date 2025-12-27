@@ -13,10 +13,10 @@
 package de.linzn.weather.callbacks;
 
 
+import de.linzn.stem.taskManagment.operations.AbstractOperation;
+import de.linzn.stem.taskManagment.operations.OperationOutput;
 import de.linzn.weather.WeatherPlugin;
 import de.linzn.weather.engine.WeatherEngine;
-import de.stem.stemSystem.taskManagment.operations.AbstractOperation;
-import de.stem.stemSystem.taskManagment.operations.OperationOutput;
 import org.json.JSONObject;
 
 

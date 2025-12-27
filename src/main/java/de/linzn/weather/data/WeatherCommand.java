@@ -13,12 +13,12 @@
 package de.linzn.weather.data;
 
 
+import de.linzn.stem.STEMApp;
+import de.linzn.stem.modules.commandModule.ICommand;
 import de.linzn.weather.WeatherPlugin;
 import de.linzn.weather.dataObjects.SensorData;
 import de.linzn.weather.engine.WeatherContainer;
 import de.linzn.weather.engine.WeatherEngine;
-import de.stem.stemSystem.STEMSystemApp;
-import de.stem.stemSystem.modules.commandModule.ICommand;
 
 public class WeatherCommand implements ICommand {
     @Override
@@ -27,14 +27,14 @@ public class WeatherCommand implements ICommand {
             String location = strings[0];
             String key = WeatherPlugin.weatherPlugin.getDefaultConfig().getString("weather.apiKey");
             WeatherContainer weatherContainer = new WeatherEngine(key).getCurrentWeather(location);
-            STEMSystemApp.LOGGER.LIVE(weatherContainer.printData());
+            STEMApp.LOGGER.LIVE(weatherContainer.printData());
         } else {
             if (SensorData.getLastSensorData() != null) {
                 long s = SensorData.getLastSensorData().getSecondsSinceSync();
-                STEMSystemApp.LOGGER.LIVE("Last sync from esp sensor: ");
-                STEMSystemApp.LOGGER.LIVE(s + " seconds ago!");
+                STEMApp.LOGGER.LIVE("Last sync from esp sensor: ");
+                STEMApp.LOGGER.LIVE(s + " seconds ago!");
             } else {
-                STEMSystemApp.LOGGER.LIVE("No data since last stem restart!");
+                STEMApp.LOGGER.LIVE("No data since last stem restart!");
             }
         }
 
