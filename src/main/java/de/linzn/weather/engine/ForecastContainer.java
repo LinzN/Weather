@@ -24,11 +24,14 @@ public class ForecastContainer {
     }
 
     public int getCnt() {
-        return jsonObject.getInt("cnt");
+        /* never report more days than the list contains */
+        org.json.JSONArray list = jsonObject.optJSONArray("list");
+        return Math.min(jsonObject.optInt("cnt", 0), list == null ? 0 : list.length());
     }
 
     public String getLocation() {
-        return jsonObject.getJSONObject("city").getString("name");
+        org.json.JSONObject city = jsonObject.optJSONObject("city");
+        return city == null ? "" : city.optString("name", "");
     }
 
     public ForeCastDay getForecast(int day) {

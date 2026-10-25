@@ -12,8 +12,6 @@
 
 package de.linzn.weather.data;
 
-
-import de.linzn.stem.STEMApp;
 import de.linzn.stem.taskManagment.AbstractCallback;
 import de.linzn.stem.taskManagment.CallbackTime;
 import de.linzn.stem.taskManagment.operations.OperationOutput;
@@ -26,25 +24,33 @@ import java.util.concurrent.TimeUnit;
 
 public class WeatherCallback extends AbstractCallback {
 
-    private WeatherContainer weatherContainer = null;
+    private volatile WeatherContainer weatherContainer = null;
 
     @Override
     public void operation() {
-        String location = WeatherPlugin.weatherPlugin.getDefaultConfig().getString("weather.defaultLocation");
         WeatherOperation weatherOperation = new WeatherOperation();
-        weatherOperation.setLocation(location);
+        weatherOperation.setLocation(WeatherPlugin.weatherPlugin.getDefaultConfig().getString("weather.defaultLocation"));
         addOperationData(weatherOperation);
-
     }
 
     @Override
     public void callback(OperationOutput operationOutput) {
-        JSONObject weatherObject = (JSONObject) operationOutput.getData();
-        JSONObject weatherCurrent = weatherObject.getJSONObject("current");
-        JSONObject weatherForecast = weatherObject.getJSONObject("forecast");
-        weatherContainer = WeatherEngine.getWeatherByJSON(weatherCurrent);
-        weatherContainer.setForecast(weatherForecast);
-        STEMApp.LOGGER.DEBUG("Weather pull complete");
+        if (operationOutput.getExit() != 0 || !(operationOutput.getData() instanceof JSONObject weatherObject)) {
+            WeatherPlugin.weatherPlugin.getPluginLogger().warning("Weather pull failed, keeping previous data");
+            return;
+        }
+        JSONObject weatherCurrent = weatherObject.optJSONObject("current");
+        if (weatherCurrent == null) {
+            WeatherPlugin.weatherPlugin.getPluginLogger().warning("Weather pull returned no current data, keeping previous data");
+            return;
+        }
+        WeatherContainer container = WeatherEngine.getWeatherByJSON(weatherCurrent);
+        JSONObject weatherForecast = weatherObject.optJSONObject("forecast");
+        if (weatherForecast != null) {
+            container.setForecast(weatherForecast);
+        }
+        this.weatherContainer = container;
+        WeatherPlugin.weatherPlugin.getPluginLogger().debug("Weather pull complete");
     }
 
     @Override

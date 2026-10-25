@@ -12,19 +12,27 @@
 
 package de.linzn.weather.engine;
 
-import de.linzn.stem.STEMApp;
-import org.json.JSONException;
+import de.linzn.weather.WeatherPlugin;
 import org.json.JSONObject;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
+/**
+ * OpenWeatherMap client. Requests use timeouts and never leave connections open.
+ */
 public class WeatherEngine {
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
 
-
-    private String apiKey;
+    private final String apiKey;
 
     public WeatherEngine(String apiKey) {
         this.apiKey = apiKey;
@@ -34,41 +42,46 @@ public class WeatherEngine {
         return new WeatherContainer(jsonObject);
     }
 
-    public static JSONObject readJsonFromUrl(String url) throws JSONException {
+    /**
+     * @return the parsed JSON response or null if the request failed
+     */
+    public static JSONObject readJsonFromUrl(String url) {
         try {
-            URLConnection con = new URL(url).openConnection();
-
-            InputStream is = con.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-            String jsonText = readAll(rd);
-            return new JSONObject(jsonText);
+            HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(20)).GET().build();
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() != 200) {
+                WeatherPlugin.weatherPlugin.getPluginLogger().warning("Weather request failed with HTTP " + response.statusCode());
+                return null;
+            }
+            return new JSONObject(response.body());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } catch (Exception exception) {
-            STEMApp.LOGGER.ERROR(exception);
+            /* the URL may contain the API key, so only the error is logged */
+            WeatherPlugin.weatherPlugin.getPluginLogger().warning("Weather request failed: " + exception);
         }
         return null;
     }
 
-    private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
+    private static String encode(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 
+    /**
+     * @return current weather or null if it could not be loaded
+     */
     public WeatherContainer getCurrentWeather(String location) {
-        return new WeatherContainer(parseWeather(location));
+        JSONObject json = parseWeather(location);
+        return json == null ? null : new WeatherContainer(json);
     }
 
     public JSONObject parseWeather(String location) {
-        String apiLink = "https://api.openweathermap.org/data/2.5/weather?q=" + location + ",de&appid=" + this.apiKey + "&lang=de&units=metric";
+        String apiLink = "https://api.openweathermap.org/data/2.5/weather?q=" + encode(location) + ",de&appid=" + encode(this.apiKey) + "&lang=de&units=metric";
         return readJsonFromUrl(apiLink);
     }
 
     public JSONObject parseForecastWeather(String location, int forecastDays) {
-        String apiLink = "https://api.openweathermap.org/data/2.5/forecast/daily?q=" + location + ",de&cnt=" + forecastDays + "&appid=" + this.apiKey + "&lang=de&units=metric";
+        String apiLink = "https://api.openweathermap.org/data/2.5/forecast/daily?q=" + encode(location) + ",de&cnt=" + forecastDays + "&appid=" + encode(this.apiKey) + "&lang=de&units=metric";
         return readJsonFromUrl(apiLink);
     }
-
 }

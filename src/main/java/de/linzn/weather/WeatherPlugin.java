@@ -12,8 +12,6 @@
 
 package de.linzn.weather;
 
-
-import de.linzn.stem.STEMApp;
 import de.linzn.stem.modules.pluginModule.STEMPlugin;
 import de.linzn.weather.callbacks.ESPSensorCallback;
 import de.linzn.weather.data.WeatherCallback;
@@ -21,11 +19,10 @@ import de.linzn.weather.data.WeatherCommand;
 import de.linzn.weather.engine.WeatherContainer;
 import de.linzn.weather.webapi.WebApiHandler;
 
-
 public class WeatherPlugin extends STEMPlugin {
 
     public static WeatherPlugin weatherPlugin;
-    private WeatherCallback weatherCallback;
+    private final WeatherCallback weatherCallback;
     private WebApiHandler webApiHandler;
 
     public WeatherPlugin() {
@@ -40,17 +37,19 @@ public class WeatherPlugin extends STEMPlugin {
         this.getDefaultConfig().get("espMCU.sensor.use", false);
         this.getDefaultConfig().get("espMCU.sensor.address", "10.40.0.52");
         this.getDefaultConfig().save();
-        STEMApp.getInstance().getCommandModule().registerCommand("weather", new WeatherCommand());
-        STEMApp.getInstance().getCallBackService().registerCallbackListener(weatherCallback, this);
+        this.getStemApi().commands().register("weather", new WeatherCommand());
+        this.getStemApi().scheduler().registerCallback(weatherCallback);
         if (this.getDefaultConfig().getBoolean("espMCU.sensor.use")) {
-            STEMApp.getInstance().getCallBackService().registerCallbackListener(new ESPSensorCallback(), this);
+            this.getStemApi().scheduler().registerCallback(new ESPSensorCallback());
         }
         this.webApiHandler = new WebApiHandler(this);
     }
 
     @Override
     public void onDisable() {
-        STEMApp.getInstance().getCommandModule().unregisterCommand("wetter");
+        if (this.webApiHandler != null) {
+            this.webApiHandler.disable();
+        }
     }
 
     public WeatherContainer getWeatherData() {

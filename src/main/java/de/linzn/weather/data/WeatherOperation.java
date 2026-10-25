@@ -12,7 +12,6 @@
 
 package de.linzn.weather.data;
 
-
 import de.linzn.stem.taskManagment.operations.AbstractOperation;
 import de.linzn.stem.taskManagment.operations.OperationOutput;
 import de.linzn.weather.WeatherPlugin;
@@ -25,15 +24,22 @@ public class WeatherOperation extends AbstractOperation {
     @Override
     public OperationOutput runOperation() {
         OperationOutput operationOutput = new OperationOutput(this);
-        String key = WeatherPlugin.weatherPlugin.getDefaultConfig().getString("weather.apiKey");
+        WeatherEngine engine = new WeatherEngine(WeatherPlugin.weatherPlugin.getDefaultConfig().getString("weather.apiKey"));
+        JSONObject current = engine.parseWeather(location);
+        if (current == null) {
+            operationOutput.setExit(1);
+            return operationOutput;
+        }
         JSONObject weatherData = new JSONObject();
-        weatherData.put("current", new WeatherEngine(key).parseWeather(location));
-        weatherData.put("forecast", new WeatherEngine(key).parseForecastWeather(location, 5));
+        weatherData.put("current", current);
+        JSONObject forecast = engine.parseForecastWeather(location, 5);
+        if (forecast != null) {
+            weatherData.put("forecast", forecast);
+        }
         operationOutput.setData(weatherData);
         operationOutput.setExit(0);
         return operationOutput;
     }
-
 
     public String getLocation() {
         return location;

@@ -12,34 +12,34 @@
 
 package de.linzn.weather.callbacks;
 
-import de.linzn.stem.STEMApp;
 import de.linzn.stem.taskManagment.AbstractCallback;
 import de.linzn.stem.taskManagment.CallbackTime;
 import de.linzn.stem.taskManagment.operations.OperationOutput;
+import de.linzn.weather.WeatherPlugin;
 import de.linzn.weather.dataObjects.SensorData;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.concurrent.TimeUnit;
-
 
 public class ESPSensorCallback extends AbstractCallback {
 
     @Override
     public void operation() {
-        ESPSensorRequestOperation espSensorRequestOperation = new ESPSensorRequestOperation();
-        addOperationData(espSensorRequestOperation);
-        STEMApp.LOGGER.DEBUG("Send ESP sensor request");
+        addOperationData(new ESPSensorRequestOperation());
     }
 
     @Override
     public void callback(OperationOutput operationOutput) {
-        JSONObject jsonObject = (JSONObject) operationOutput.getData();
-        if (operationOutput.getExit() == 0) {
-            STEMApp.LOGGER.DEBUG("Get ESP sensor GET-data: " + jsonObject + " exit " + operationOutput.getExit());
-            SensorData sensorData = new SensorData(jsonObject);
-            SensorData.setLastSensorData(sensorData);
-        } else {
-            STEMApp.LOGGER.ERROR("ESP sensor GET-data error! Request end with exit " + operationOutput.getExit());
+        if (operationOutput.getExit() != 0 || !(operationOutput.getData() instanceof JSONObject jsonObject)) {
+            WeatherPlugin.weatherPlugin.getPluginLogger().warning("ESP sensor request failed with exit " + operationOutput.getExit());
+            return;
+        }
+        try {
+            SensorData.setLastSensorData(new SensorData(jsonObject));
+            WeatherPlugin.weatherPlugin.getPluginLogger().debug("ESP sensor data: " + jsonObject);
+        } catch (JSONException e) {
+            WeatherPlugin.weatherPlugin.getPluginLogger().warning("Invalid ESP sensor data: " + jsonObject);
         }
     }
 
@@ -47,6 +47,4 @@ public class ESPSensorCallback extends AbstractCallback {
     public CallbackTime getTime() {
         return new CallbackTime(30, 60, TimeUnit.SECONDS);
     }
-
-
 }

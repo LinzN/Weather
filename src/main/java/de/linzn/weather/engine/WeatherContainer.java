@@ -23,7 +23,7 @@ public class WeatherContainer {
 
     private final JSONObject jsonObject;
 
-    private ForecastContainer forecastContainer;
+    private volatile ForecastContainer forecastContainer;
 
 
     public WeatherContainer(JSONObject jsonObject) {
@@ -36,7 +36,7 @@ public class WeatherContainer {
     }
 
     public void setForecast(JSONObject jsonObject) {
-        forecastContainer = new ForecastContainer(jsonObject);
+        forecastContainer = jsonObject == null ? null : new ForecastContainer(jsonObject);
     }
 
     public boolean hasForecast() {

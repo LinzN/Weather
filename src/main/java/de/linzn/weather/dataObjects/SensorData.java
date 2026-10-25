@@ -19,12 +19,12 @@ import java.util.Date;
 
 public class SensorData {
     private static final int upToDateMinutes = 10;
-    private static SensorData sensorData;
-    private Date date;
-    private double temperature;
-    private double pressure;
-    private double humidity;
-    private String location;
+    private static volatile SensorData sensorData;
+    private final Date date;
+    private final double temperature;
+    private final double pressure;
+    private final double humidity;
+    private final String location;
 
     public SensorData(JSONObject jsonObject) {
         this.date = new Date();
